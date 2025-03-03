@@ -70,10 +70,7 @@ module.exports.login = catchAsync(async (req, res, next) => {
 });
 
 module.exports.logout = (req, res) => {
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
+  res.clearCookie('jwt');
   res.status(200).json({
     status: 'success',
   });
@@ -92,9 +89,7 @@ module.exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    return next(
-      new AppError('You are not logged in! Please log in to get access', 401),
-    );
+    return res.redirect('/');
   }
 
   // Verification token
@@ -125,6 +120,10 @@ module.exports.protect = catchAsync(async (req, res, next) => {
 });
 
 module.exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt === null) {
+    return next();
+  }
+
   if (req.cookies.jwt) {
     try {
       // Verify token
